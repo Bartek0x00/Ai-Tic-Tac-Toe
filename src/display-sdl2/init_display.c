@@ -9,19 +9,21 @@
 
 void terminate(int stage)
 {
-	if (stage > 3)
+	switch (stage) {
+	case 4:
 		SDL_DestroyRenderer(display.renderer);
-	if (stage > 2)
+	case 3:
 		SDL_DestroyWindow(display.window);
-	if (stage > 1)
+	case 2:
 		TTF_Quit();
-	if (stage > 0)
+	case 1:
 		IMG_Quit();
-	if (stage >= 0)
+	case 0:
 		SDL_Quit();
+	}
 }
 
-static SDL_Texture *loadTexture(SDL_Window *window,
+static SDL_Texture *load_texture(SDL_Window *window,
 								SDL_Renderer *renderer, 
 								void *mem, 
 								const unsigned int len,
@@ -57,7 +59,7 @@ static SDL_Texture *loadTexture(SDL_Window *window,
 	return texture;
 }
 
-void initDisplay(void)
+void init_display(void)
 {
 	if (SDL_Init(SDL_INIT_VIDEO)) {
 		SDL_Log(
@@ -114,21 +116,21 @@ void initDisplay(void)
 		exit(-1);
 	}
 	
-	SDL_Texture *background = loadTexture(
+	SDL_Texture *background = load_texture(
 		window,
 		renderer,
 		background_png,
 		background_png_len,
 		"background.png"
 	);
-	SDL_Texture *cross = loadTexture(
+	SDL_Texture *cross = load_texture(
 		window,
 		renderer,
 		cross_png,
 		cross_png_len,
 		"cross.png"
 	);
-	SDL_Texture *circle = loadTexture(
+	SDL_Texture *circle = load_texture(
 		window,
 		renderer,
 		circle_png,

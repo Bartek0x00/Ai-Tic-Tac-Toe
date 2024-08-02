@@ -1,4 +1,4 @@
-#include "Board.h"
+#include "board.h"
 
 #define N NONE //0b00
 #define R RED  //0b01
@@ -16,7 +16,7 @@
 	((i7) << 2) | \
 	((i8) << 0))
 
-const Board Board_WIN_RED[8] = { 
+const Board BOARD_WIN_RED[8] = { 
 	BOARD( 
 		R, R, R, 
 		N, N, N, 
@@ -59,7 +59,7 @@ const Board Board_WIN_RED[8] = {
 	)
 };
 
-const Board Board_WIN_BLUE[8] = {
+const Board BOARD_WIN_BLUE[8] = {
 	BOARD(
 		B, B, B,
 		N, N, N,
@@ -102,12 +102,12 @@ const Board Board_WIN_BLUE[8] = {
 	)
 };
 
-Color Board_GetWinner(Board board)
+Color board_get_winner(Board board)
 {
 	for (int i = 0; i < 8; i++) {
-		if ((board & Board_WIN_RED[i]) == Board_WIN_RED[i])
+		if ((board & BOARD_WIN_RED[i]) == BOARD_WIN_RED[i])
 			return RED;
-		if ((board & Board_WIN_BLUE[i]) == Board_WIN_BLUE[i])
+		if ((board & BOARD_WIN_BLUE[i]) == BOARD_WIN_BLUE[i])
 			return BLUE;
 	}
 	return NONE;

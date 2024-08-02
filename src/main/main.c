@@ -2,121 +2,111 @@
 #include <stdlib.h>
 #include <time.h>
 #include "main.h"
-#include "../AI/Board.h"
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif //__EMSCRIPTEN__
-	
-static unsigned int isPlayerMove = 0;
-static unsigned char input = '\0';
-static char buffer[32] = {'\0'};
-static unsigned int remainingMoves = 9;
-static unsigned int gameOver = 0;
-static Color playerColor = 0;
 
-static void User(void);
-static void Algorithm(void);
-static inline _Noreturn void Exit(void);
-static Board board = Board_EMPTY;	
+#define ATOI(num) ((num) - '0')
 
-static void Algorithm(void)
+static unsigned int remaining_moves = 9;
+static Color player_color = 0;
+
+static Board algorithm(Board board)
 {
-	drawDisplay(board);
-	Color winner = Board_GetWinner(board);
+	while (1) {
+		Color winner = BOARD_GET_WINNER(board);
+		if (winner) {
+			// Well, if someone won, it is not the player
+			show_text("You've lost\n", RED);
+			remaining_moves = 0;
+			draw_display(board);
+			return board;
+		}
 
-	if (winner) {
-		showText("You've lost\n", RED);
-		gameOver = 1;
-		User();
-	}
+		if (!remaining_moves) {
+			show_text("It's a tie\n", BLUE);	
+			draw_display(board);
+			return board;
+		}
 
-	if (!remainingMoves) {
-		showText("It's a tie\n", BLUE);	
-		gameOver = 1;
-		User();
-	}
-
-#ifdef __EMSCRIPTEN__
-	sprintf(buffer, "Solve time: <1ms\n");
-
-	board = solve(board, (playerColor ^ 0b11));
-#else
-	struct timespec startTime, endTime;
-	clock_gettime(CLOCK_MONOTONIC, &startTime);
-
-	board = solve(board, (playerColor ^ 0b11));
-		
-	clock_gettime(CLOCK_MONOTONIC, &endTime);
-	long elapsedTime = (endTime.tv_nsec - startTime.tv_nsec);
-	
-	sprintf(
-		buffer,
-		"Solve time: %ldns\n", 
-		elapsedTime
-	);
-#endif //__EMSCRIPTEN__
-	showText(buffer, NONE);
-
-	if (!(--remainingMoves) || Board_GetWinner(board)) 
-		Algorithm();
-}
-
-static void User(void)
-{
-	drawDisplay(board); 
-	while(!getEvent(&input))
-	{
-#ifdef __EMSCRIPTEN__
+	#ifdef __EMSCRIPTEN__
+		emscripten_sleep(16);
+		board = solve(board, COLOR_SWAP(player_color));
+		show_text("Solve time: < 1ms\n", NONE);
+		draw_display(board);
 		emscripten_sleep(1);
-#endif //__EMSCRIPTEN__
-	}
 
-	if (input == 'q') Exit();
-	if (gameOver) User();
-	if (!Board_Get(board, (input - '0'))) {
-		board = Board_Set(board, (input - '0'), playerColor);
-		remainingMoves--;
-	} else {
-		User();
-	}		
+	#else //__EMSCRIPTEN__
+		struct timespec start_time, end_time;
+		clock_gettime(CLOCK_MONOTONIC, &start_time);
+
+		board = solve(board, COLOR_SWAP(player_color));
+		
+		clock_gettime(CLOCK_MONOTONIC, &end_time);
+		long elapsed_time = (end_time.tv_nsec - start_time.tv_nsec);
+	
+		char buff[32] = {'\0'};
+	
+		snprintf(buff, sizeof(buff), "Solve time: %ldns\n", elapsed_time);
+		show_text(buff, NONE);
+		draw_display(board);
+	#endif //__EMSCRIPTEN__
+	
+		// If there are remaining_moves left and 
+		// there is no winner, give a turn to the player
+		if (--remaining_moves)
+			if (!BOARD_GET_WINNER(board)) 
+				return board;
+	}
 }
 
-static void main_loop(void)
+static Board user(Board board)
 {
-	if (isPlayerMove) {
-		User();
-		isPlayerMove = 0;
+	while (1) {
+		unsigned char input = '\0';
+
+		while(!get_event(&input)) {
+		#ifdef __EMSCRIPTEN__
+			emscripten_sleep(1);
+		#endif //__EMSCRIPTEN__
+		}
+
+		if (input == 'q') {
+			delete_display();
+			exit(EXIT_SUCCESS);
+		}
+		
+		if (!remaining_moves)
+			continue;
+
+		if (!BOARD_GET(board, ATOI(input))) {
+			board = BOARD_SET(board, ATOI(input), player_color);
+			draw_display(board);
+			remaining_moves--;
+			return board;
+		}
 	}
-
-	Algorithm();
-	User();
-}
-
-static inline _Noreturn void Exit(void)
-{
-	deleteDisplay();
-	exit(0);	
 }
 
 int main(void)
 {
-	initDisplay(); 
-	
-	srand(time(0));
-	playerColor = (rand() % 2) + 1;
+	register Board board = BOARD_EMPTY;
 
-	if (playerColor == RED) {
-		showText("You're red cross X\n", RED);
-		isPlayerMove = 1;
-	} else
-		showText("You're blue circle O\n", BLUE);
+	init_display(); 
+
+	srand(time(0));
+	player_color = (rand() % 2) + 1;
 	
-#ifdef __EMSCRIPTEN__
-	emscripten_set_main_loop(main_loop, 0, 1);
-#else
-	while (1) {
-		main_loop();
+	if (player_color == RED) {
+		show_text("You're red cross X\n", RED);
+		draw_display(BOARD_EMPTY);
+		board = user(board);
 	}
-#endif 
+
+	while (1) {
+		board = algorithm(board);
+		board = user(board);
+	}
+	return 0;	
 }

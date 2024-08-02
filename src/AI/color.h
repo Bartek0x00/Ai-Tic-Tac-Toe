@@ -7,4 +7,6 @@ typedef enum {
 	BLUE = 0b10
 } Color;
 
+#define COLOR_SWAP(color) ((color) ^ 0b11)
+
 #endif //_AI_COLOR

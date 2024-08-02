@@ -1,9 +1,9 @@
 #include <stdbool.h>
 #include "window.h"
 #include "display.h"
-#include "../AI/Board.h"
+#include "../AI/board.h"
 
-void drawDisplay(Board board)
+void draw_display(Board board)
 {	
 	SDL_Rect background = {
 		0, 
@@ -29,10 +29,10 @@ void drawDisplay(Board board)
 				CELL_SIZE
 			};
 
-			if (Board_Get(board, count)) {
+			if (BOARD_GET(board, count)) {
 				SDL_RenderCopy(
 					display.renderer,
-					Board_Get(board, count) == 1 ? \
+					BOARD_GET(board, count) == 1 ? \
 					display.cross : \
 					display.circle,
 					NULL,

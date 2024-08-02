@@ -3,7 +3,7 @@
 #include <SDL2/SDL_ttf.h>
 #include "display.h"
 
-void deleteDisplay(void)
+void delete_display(void)
 {
 	SDL_DestroyTexture(display.circle);
 	SDL_DestroyTexture(display.cross);

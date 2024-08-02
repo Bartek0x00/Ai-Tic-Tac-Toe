@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-void initDisplay(void)
+void init_display(void)
 {
 	puts(
 		"\tTIC-TAC-TOE\n"
